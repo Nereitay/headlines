@@ -13,4 +13,5 @@ import java.util.List;
 
 public interface ApArticleContentRepository extends JpaRepository<ApArticleContent, Long>, JpaSpecificationExecutor<ApArticleContent>, QuerydslPredicateExecutor<ApArticleContent> {
 
+    ApArticleContent findByArticleId(long l);
 }

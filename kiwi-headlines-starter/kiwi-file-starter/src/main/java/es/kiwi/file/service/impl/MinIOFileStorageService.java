@@ -34,7 +34,7 @@ public class MinIOFileStorageService implements FileStorageService {
 
     /**
      * @param dirPath
-     * @param filename  yyyy/mm/dd/file.jpg
+     * @param filename  yyyy/MM/dd/file.jpg
      * @return
      */
     public String builderFilePath(String dirPath, String filename) {
