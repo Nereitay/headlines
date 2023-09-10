@@ -46,9 +46,10 @@ public class ApArticleServiceImpl implements ApArticleService {
 
         // 分页的值不超过50
         size = Math.min(size, MAX_PAGE_SIZE);
+        dto.setSize(size);
 
         // 校验参数 --> type
-        if (type.equals(ArticleConstants.LOADTYPE_LOAD_MORE) && type.equals(ArticleConstants.LOADTYPE_LOAD_LATEST)) {
+        if (!type.equals(ArticleConstants.LOADTYPE_LOAD_MORE) && !type.equals(ArticleConstants.LOADTYPE_LOAD_LATEST)) {
             type = ArticleConstants.LOADTYPE_LOAD_MORE;
         }
 
