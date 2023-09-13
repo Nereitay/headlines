@@ -13,6 +13,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>kiwi-headlines-app-gateway</module>
+        <module>kiwi-headlines-media-gateway</module>
     </modules>
 
     <dependencies>

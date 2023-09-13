@@ -17,6 +17,7 @@
         <!--用户端微服务-->
         <module>kiwi-headlines-user</module>
         <module>kiwi-headlines-article</module>
+        <module>kiwi-headlines-wemedia</module>
     </modules>
 
     <dependencies>
