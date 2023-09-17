@@ -1,24 +1,29 @@
 package es.kiwi.model.article.pojos;
 
+import es.kiwi.model.jpa.snowflake.AbstractBaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 /**
  * APP已发布文章配置表
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @Table(name = "ap_article_config")
-public class ApArticleConfig {
+@NoArgsConstructor
+public class ApArticleConfig extends AbstractBaseEntity {
 
-    /**
-     * 主键
-     */
-    @Id
-    @Column(name = "id", nullable = false)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    public ApArticleConfig(Long articleId) {
+        this.articleId = articleId;
+        this.isDelete = false;
+        this.isDown = false;
+        this.isForward = true;
+        this.isComment = true;
+    }
 
     /**
      * 文章ID

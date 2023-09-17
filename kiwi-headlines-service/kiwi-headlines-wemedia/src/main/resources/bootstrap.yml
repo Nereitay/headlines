@@ -11,3 +11,8 @@ spring:
         server-addr: 192.168.1.150:8848
         file-extension: yml
         group: HibernateSQL
+aliyun:
+  accessKeyId: LTAI5tCWHCcfvqQzu8k2oKmX
+  secret: auoKUFsghimbfVQHpy7gtRyBkoR4vc
+  #aliyun.scenes=porn,terrorism,ad,qrcode,live,logo
+  scenes: terrorism

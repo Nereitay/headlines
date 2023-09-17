@@ -3,28 +3,44 @@ package es.kiwi.article.service.impl;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import es.kiwi.article.repository.ApArticleConfigRepository;
+import es.kiwi.article.repository.ApArticleContentRepository;
 import es.kiwi.article.repository.ApArticleRepository;
 import es.kiwi.article.service.ApArticleService;
 import es.kiwi.common.constants.ArticleConstants;
+import es.kiwi.model.article.dtos.ArticleDto;
 import es.kiwi.model.article.dtos.ArticleHomeDto;
-import es.kiwi.model.article.pojos.ApArticle;
-import es.kiwi.model.article.pojos.QApArticle;
-import es.kiwi.model.article.pojos.QApArticleConfig;
+import es.kiwi.model.article.mapstruct.mappers.ApArticleMapper;
+import es.kiwi.model.article.pojos.*;
 import es.kiwi.model.common.dtos.ResponseResult;
+import es.kiwi.model.common.enums.AppHttpCodeEnum;
+import es.kiwi.utils.common.UpdateUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service("apArticleService")
+@Transactional
+@Slf4j
 public class ApArticleServiceImpl implements ApArticleService {
 
     @Autowired
     private ApArticleRepository apArticleRepository;
     @Autowired
     private JPAQueryFactory jpaQueryFactory;
+
+    @Autowired
+    private ApArticleConfigRepository apArticleConfigRepository;
+
+    @Autowired
+    private ApArticleContentRepository apArticleContentRepository;
 
     private static final short MAX_PAGE_SIZE = 50;
 
@@ -94,5 +110,53 @@ public class ApArticleServiceImpl implements ApArticleService {
                 .limit(dto.getSize())
                 .fetch();
 
+    }
+
+    /**
+     * 保存app端相关文章
+     * @param dto
+     * @return
+     */
+    @Override
+    public ResponseResult saveArticle(ArticleDto dto) {
+        //1.检查参数
+        if (dto == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        }
+        ApArticle apArticle = ApArticleMapper.INSTANCE.dtoToPojo(dto);
+        //2.判断是否存在id
+        if (apArticle.getId() == null) {
+            //2.1 不存在id  保存  文章  文章配置  文章内容
+            //保存文章
+            apArticle = apArticleRepository.saveAndFlush(apArticle);
+            //保存配置
+            ApArticleConfig apArticleConfig = new ApArticleConfig(apArticle.getId());
+            apArticleConfig.setArticleId(apArticle.getId());
+            apArticleConfigRepository.save(apArticleConfig);
+            //保存 文章内容
+            ApArticleContent apArticleContent = new ApArticleContent();
+            apArticleContent.setArticleId(apArticle.getId());
+            apArticleContent.setContent(dto.getContent());
+            apArticleContentRepository.save(apArticleContent);
+        } else {
+            //2.2 存在id   修改  文章  文章内容
+            //修改  文章
+            /* 只更新不为null的字段*/
+            Optional<ApArticle> apArticleOpt = apArticleRepository.findById(apArticle.getId());
+            if (apArticleOpt.isPresent()) {
+                ApArticle apArticleDb = apArticleOpt.get();
+                UpdateUtil.copyNullProperties(apArticleOpt, apArticleDb);
+                apArticleRepository.save(apArticleDb);
+            } else {
+                return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST, "文章Id不存在：" + apArticle.getId());
+            }
+            //修改文章内容
+            ApArticleContent apArticleContent = apArticleContentRepository.findByArticleId(dto.getId());
+            apArticleContent.setContent(dto.getContent());
+            apArticleContentRepository.save(apArticleContent);
+        }
+
+        //3.结果返回  文章的id
+        return ResponseResult.okResult(apArticle.getId());
     }
 }

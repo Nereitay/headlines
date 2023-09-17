@@ -1,6 +1,10 @@
 package es.kiwi.model.article.pojos;
 
+import es.kiwi.model.jpa.snowflake.AbstractBaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -9,15 +13,13 @@ import java.util.Date;
 /**
  * 文章信息表，存储已发布的文章
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @Table(name = "ap_article")
-public class ApArticle {
+@Accessors(chain = true)
+public class ApArticle extends AbstractBaseEntity {
 
-    @Id
-    @Column(name = "id", nullable = false)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     /**
      * 标题

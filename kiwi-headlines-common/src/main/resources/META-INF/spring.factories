@@ -1,4 +1,6 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   es.kiwi.common.exception.ExceptionCatch,\
   es.kiwi.common.swagger.SwaggerConfiguration,\
-  es.kiwi.common.swagger.Swagger2Configuration
+  es.kiwi.common.swagger.Swagger2Configuration,\
+  es.kiwi.common.aliyun.GreenImageScan,\
+  es.kiwi.common.aliyun.GreenTextScan

@@ -1,5 +1,6 @@
 package es.kiwi.article.service;
 
+import es.kiwi.model.article.dtos.ArticleDto;
 import es.kiwi.model.article.dtos.ArticleHomeDto;
 import es.kiwi.model.article.pojos.ApArticle;
 import es.kiwi.model.common.dtos.ResponseResult;
@@ -13,4 +14,5 @@ public interface ApArticleService {
 
     List<ApArticle> loadArticleList(ArticleHomeDto dto, Short type);
 
+    ResponseResult saveArticle(ArticleDto dto);
 }
