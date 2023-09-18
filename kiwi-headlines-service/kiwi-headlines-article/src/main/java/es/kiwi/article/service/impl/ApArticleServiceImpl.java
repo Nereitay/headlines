@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -119,6 +120,17 @@ public class ApArticleServiceImpl implements ApArticleService {
      */
     @Override
     public ResponseResult saveArticle(ArticleDto dto) {
+        /*测试熔断
+        -- 注意 WmNewsAutoScanServiceImpl调用此方法出现熔断后抛异常，但此方法保存的内容不会回滚
+            如何解决？加了return。。
+        */
+        /*try {
+            Thread.sleep(3000);
+            return ResponseResult.errorResult(AppHttpCodeEnum.SERVER_ERROR);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }*/
+
         //1.检查参数
         if (dto == null) {
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);

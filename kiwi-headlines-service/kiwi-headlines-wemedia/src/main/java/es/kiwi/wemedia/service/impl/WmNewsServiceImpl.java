@@ -16,6 +16,7 @@ import es.kiwi.model.wemedia.pojos.WmNews;
 import es.kiwi.utils.thread.WmThreadLocalUtils;
 import es.kiwi.wemedia.repository.WmMaterialRepository;
 import es.kiwi.wemedia.repository.WmNewsRepository;
+import es.kiwi.wemedia.service.WmNewsAutoScanService;
 import es.kiwi.wemedia.service.WmNewsMaterialService;
 import es.kiwi.wemedia.service.WmNewsService;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -37,17 +39,17 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @Slf4j
+@EnableAsync //开启异步调用
 public class WmNewsServiceImpl implements WmNewsService {
 
     @Autowired
     private WmNewsRepository wmNewsRepository;
-
     @Autowired
     private WmNewsMaterialService wmNewsMaterialService;
-
     @Autowired
     private WmMaterialRepository wmMaterialRepository;
-
+    @Autowired
+    private WmNewsAutoScanService wmNewsAutoScanService;
     @Override
     public ResponseResult findList(WmNewsPageReqDto dto) {
         // 1. 检查参数
@@ -114,6 +116,9 @@ public class WmNewsServiceImpl implements WmNewsService {
 
         //4.不是草稿，保存文章封面图片与素材的关系，如果当前布局是自动，需要匹配封面图片
         saveRelativeInfoForCover(dto, wmNews, materials);
+
+        // 审核文章
+        wmNewsAutoScanService.autoScanWmNews(wmNews.getId());
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }

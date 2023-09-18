@@ -2,7 +2,6 @@ package es.kiwi.wemedia.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.ArrayType;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import es.kiwi.apis.article.IArticleClient;
 import es.kiwi.common.aliyun.GreenImageScan;
@@ -14,13 +13,16 @@ import es.kiwi.model.wemedia.mapstruct.mappers.WmNewsMapper;
 import es.kiwi.model.wemedia.pojos.WmChannel;
 import es.kiwi.model.wemedia.pojos.WmNews;
 import es.kiwi.model.wemedia.pojos.WmUser;
+import es.kiwi.utils.common.SensitiveWordUtil;
 import es.kiwi.wemedia.repository.WmChannelRepository;
 import es.kiwi.wemedia.repository.WmNewsRepository;
+import es.kiwi.wemedia.repository.WmSensitiveRepository;
 import es.kiwi.wemedia.repository.WmUserRepository;
 import es.kiwi.wemedia.service.WmNewsAutoScanService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -47,9 +49,14 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
     private WmChannelRepository wmChannelRepository;
     @Autowired
     private WmUserRepository wmUserRepository;
+    @Autowired
+    private WmSensitiveRepository wmSensitiveRepository;
 
     @Override
+    @Async // 表明当前方法是一个异步方法
     public void autoScanWmNews(Integer id) {
+        /*测试异步调用*/
+//        int a = 1/0;
 
         // 1. 查询自媒体文章
         Optional<WmNews> wmNewsOpt = wmNewsRepository.findById(id);
@@ -57,6 +64,13 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
         if (wmNews.getStatus().equals(WmNews.Status.SUBMIT.getCode())) {
             //从内容中提取纯文本内容和图片
             Map<String, Object> textAndImages = handleTextAndImages(wmNews);
+
+            // 自管理的敏感词过滤
+            boolean isSensitive = handleSensitiveScan((String) textAndImages.get("content"), wmNews);
+            if (!isSensitive) {
+                return;
+            }
+
             //2.审核文本内容  阿里云接口
             boolean isTextScan = handleTextScan((String) textAndImages.get("content"), wmNews);
             if (!isTextScan) {
@@ -78,6 +92,29 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
             updateWmNews(wmNews, (short) 9, "审核成功");
         }
 
+    }
+
+    /**
+     * 自管理的敏感词审核
+     * @param content
+     * @param wmNews
+     * @return
+     */
+    private boolean handleSensitiveScan(String content, WmNews wmNews) {
+        boolean flag = true;
+
+        // 获取所有的敏感词
+        List<String> sensitiveList = wmSensitiveRepository.findAllSensitives();
+        // 初始化敏感词库
+        SensitiveWordUtil.initMap(sensitiveList);
+        // 查看文章中是否包含敏感词
+        Map<String, Integer> map = SensitiveWordUtil.matchWords(content);
+        if (map.size() > 0) {
+            updateWmNews(wmNews, (short) 2, "当前文章中存在违规内容" + map);
+            flag = false;
+        }
+
+        return flag;
     }
 
     /**

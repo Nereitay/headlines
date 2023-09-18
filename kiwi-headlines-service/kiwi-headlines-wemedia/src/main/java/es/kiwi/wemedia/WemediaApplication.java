@@ -8,7 +8,6 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EntityScan("es.kiwi.model.wemedia.pojos")
 @EnableFeignClients(basePackages = {"es.kiwi.apis"})
 public class WemediaApplication {
     public static void main(String[] args) {
