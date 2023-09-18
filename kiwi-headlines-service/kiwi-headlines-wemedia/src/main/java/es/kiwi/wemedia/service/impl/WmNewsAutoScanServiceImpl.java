@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.type.CollectionType;
 import es.kiwi.apis.article.IArticleClient;
 import es.kiwi.common.aliyun.GreenImageScan;
 import es.kiwi.common.aliyun.GreenTextScan;
+import es.kiwi.common.tess4j.Tess4jClient;
 import es.kiwi.file.service.FileStorageService;
 import es.kiwi.model.article.dtos.ArticleDto;
 import es.kiwi.model.common.dtos.ResponseResult;
@@ -27,6 +28,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,6 +55,8 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
     private WmUserRepository wmUserRepository;
     @Autowired
     private WmSensitiveRepository wmSensitiveRepository;
+    @Autowired
+    private Tess4jClient tess4jClient;
 
     @Override
     @Async // 表明当前方法是一个异步方法
@@ -78,9 +84,9 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
             }
             //3.审核图片  阿里云接口
             boolean isImageScan = handleImageScan((List<String>) textAndImages.get("images"), wmNews);
-            /*if (!isImageScan) {
+            if (!isImageScan) {
                 return;
-            }*/
+            }
 
             //4.审核成功，保存app端的相关的文章数据
             ResponseResult responseResult = saveAppArticle(wmNews);
@@ -154,9 +160,24 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
         images = images.stream().distinct().collect(Collectors.toList());
 
         List<byte[]> imageList = new ArrayList<>();
-        for (String image : images) {
-            byte[] bytes = fileStorageService.downLoadFile(image);
-            imageList.add(bytes);
+        try {
+            for (String image : images) {
+                byte[] bytes = fileStorageService.downLoadFile(image);
+                // byte[]转换为bufferedImage
+                ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+                BufferedImage bufferedImage = ImageIO.read(bais);
+                // 图片识别
+                String result = tess4jClient.doOCR(bufferedImage);
+                // 过滤文字
+                boolean isSensitive = handleSensitiveScan(result, wmNews);
+                if (!isSensitive) {
+                    return isSensitive;
+                }
+                imageList.add(bytes);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("WmNewsAutoScanServiceImpl - handleImageScan() 图片识别异常 ");
         }
         // 审核图片
         try {

@@ -11,4 +11,7 @@ server:
       force: true
       charset: utf-8
       enabled: true
+tess4j:
+  data-path: D:\ideawork\tessdata
+  language: chi_sim
 
