@@ -9,7 +9,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>kiwi-headlines-starter</artifactId>
+    <artifactId>kiwi-headlines-basic</artifactId>
     <packaging>pom</packaging>
     <modules>
         <module>kiwi-file-starter</module>

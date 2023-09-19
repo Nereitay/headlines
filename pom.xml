@@ -16,7 +16,7 @@
         <module>kiwi-headlines-gateway</module>
         <module>kiwi-headlines-service</module>
         <module>kiwi-headlines-test</module>
-        <module>kiwi-headlines-starter</module>
+        <module>kiwi-headlines-basic</module>
     </modules>
 
     <!-- 继承Spring boot工程 -->

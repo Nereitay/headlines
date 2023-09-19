@@ -84,9 +84,9 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
             }
             //3.审核图片  阿里云接口
             boolean isImageScan = handleImageScan((List<String>) textAndImages.get("images"), wmNews);
-            if (!isImageScan) {
+            /*if (!isImageScan) {
                 return;
-            }
+            }*/
 
             //4.审核成功，保存app端的相关的文章数据
             ResponseResult responseResult = saveAppArticle(wmNews);

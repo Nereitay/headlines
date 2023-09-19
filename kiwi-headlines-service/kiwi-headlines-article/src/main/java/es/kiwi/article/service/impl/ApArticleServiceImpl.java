@@ -7,6 +7,7 @@ import es.kiwi.article.repository.ApArticleConfigRepository;
 import es.kiwi.article.repository.ApArticleContentRepository;
 import es.kiwi.article.repository.ApArticleRepository;
 import es.kiwi.article.service.ApArticleService;
+import es.kiwi.article.service.ArticleFreemarkerService;
 import es.kiwi.common.constants.ArticleConstants;
 import es.kiwi.model.article.dtos.ArticleDto;
 import es.kiwi.model.article.dtos.ArticleHomeDto;
@@ -42,6 +43,9 @@ public class ApArticleServiceImpl implements ApArticleService {
 
     @Autowired
     private ApArticleContentRepository apArticleContentRepository;
+
+    @Autowired
+    private ArticleFreemarkerService articleFreemarkerService;
 
     private static final short MAX_PAGE_SIZE = 50;
 
@@ -167,6 +171,9 @@ public class ApArticleServiceImpl implements ApArticleService {
             apArticleContent.setContent(dto.getContent());
             apArticleContentRepository.save(apArticleContent);
         }
+
+        // 异步调用 生成静态文件上传到minio中
+        articleFreemarkerService.buildArticleToMinIO(apArticle, dto.getContent());
 
         //3.结果返回  文章的id
         return ResponseResult.okResult(apArticle.getId());
