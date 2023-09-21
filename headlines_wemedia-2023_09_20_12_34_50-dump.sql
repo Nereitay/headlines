@@ -207,6 +207,31 @@ LOCK TABLES `wm_news_statistics` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `wm_sensitive`
+--
+
+DROP TABLE IF EXISTS `wm_sensitive`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `wm_sensitive` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `sensitives` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '敏感词',
+  `created_time` datetime DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=3201 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='敏感词信息表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `wm_sensitive`
+--
+
+LOCK TABLES `wm_sensitive` WRITE;
+/*!40000 ALTER TABLE `wm_sensitive` DISABLE KEYS */;
+INSERT INTO `wm_sensitive` VALUES (3104,'冰毒','2021-05-23 15:38:51'),(3105,'法轮功','2021-05-23 15:38:51'),(3106,'私人侦探','2021-05-23 11:09:22'),(3107,'针孔摄象','2021-05-23 11:09:52'),(3108,'信用卡提现','2021-05-23 11:10:11'),(3109,'无抵押贷款','2021-05-23 11:10:41'),(3110,'广告代理','2021-05-23 11:10:59'),(3111,'代开发票','2021-05-23 11:11:18'),(3112,'蚁力神','2021-05-23 11:11:39'),(3113,'售肾','2021-05-23 11:12:08'),(3114,'刻章办','2021-05-23 11:12:24'),(3116,'套牌车','2021-05-23 11:12:37'),(3117,'足球投注','2021-05-23 11:12:51'),(3118,'地下钱庄','2021-05-23 11:13:07'),(3119,'出售答案','2021-05-23 11:13:24'),(3200,'小额贷款','2021-05-23 11:13:40');
+/*!40000 ALTER TABLE `wm_sensitive` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `wm_user`
 --
 
@@ -253,4 +278,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-09-09 21:27:29
+-- Dump completed on 2023-09-20 12:34:50

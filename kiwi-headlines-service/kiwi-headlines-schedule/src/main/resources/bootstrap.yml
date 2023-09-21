@@ -1,0 +1,14 @@
+server:
+#  port: ${server.port:51701}
+  port: 51701
+spring:
+  application:
+    name: headlines-schedule
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.1.150:8848
+      config:
+        server-addr: 192.168.1.150:8848
+        file-extension: yml
+        group: HibernateSQL

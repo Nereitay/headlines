@@ -19,6 +19,7 @@ import es.kiwi.wemedia.repository.WmNewsRepository;
 import es.kiwi.wemedia.service.WmNewsAutoScanService;
 import es.kiwi.wemedia.service.WmNewsMaterialService;
 import es.kiwi.wemedia.service.WmNewsService;
+import es.kiwi.wemedia.service.WmNewsTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,8 @@ public class WmNewsServiceImpl implements WmNewsService {
     private WmMaterialRepository wmMaterialRepository;
     @Autowired
     private WmNewsAutoScanService wmNewsAutoScanService;
+    @Autowired
+    private WmNewsTaskService wmNewsTaskService;
     @Override
     public ResponseResult findList(WmNewsPageReqDto dto) {
         // 1. 检查参数
@@ -118,7 +121,9 @@ public class WmNewsServiceImpl implements WmNewsService {
         saveRelativeInfoForCover(dto, wmNews, materials);
 
         // 审核文章
-        wmNewsAutoScanService.autoScanWmNews(wmNews.getId());
+//        wmNewsAutoScanService.autoScanWmNews(wmNews.getId());
+        wmNewsTaskService.addNewsToTask(wmNews.getId(), wmNews.getPublishTime());
+
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }

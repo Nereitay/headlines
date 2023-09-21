@@ -18,6 +18,7 @@
         <module>kiwi-headlines-user</module>
         <module>kiwi-headlines-article</module>
         <module>kiwi-headlines-wemedia</module>
+        <module>kiwi-headlines-schedule</module>
     </modules>
 
     <dependencies>
