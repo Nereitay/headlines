@@ -43,7 +43,7 @@
         <mysql.version>8.0.33</mysql.version>
         <lang3.version>3.5</lang3.version>
         <pagehelper.version>1.2.3</pagehelper.version>
-        <jsoup.version>1.10.2</jsoup.version>
+        <jsoup.version>1.13.1</jsoup.version>
         <jwt.version>0.9.1</jwt.version>
         <spring.jwt.version>1.0.9.RELEASE</spring.jwt.version>
         <spring.boot.admin.version>2.1.6</spring.boot.admin.version>
@@ -54,7 +54,7 @@
         <baidu.version>4.11.1</baidu.version>
         <junit.version>4.12</junit.version>
         <searchbox.version>6.3.1</searchbox.version>
-        <elasticsearch.version>7.2.0</elasticsearch.version>
+        <elasticsearch.version>7.4.0</elasticsearch.version>
         <ali.core.version>4.1.1</ali.core.version>
         <ali.green.version>3.4.1</ali.green.version>
         <kafka.version>2.6.6</kafka.version>

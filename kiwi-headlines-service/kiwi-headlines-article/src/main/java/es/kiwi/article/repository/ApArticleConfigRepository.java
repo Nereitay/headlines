@@ -8,4 +8,5 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 public interface ApArticleConfigRepository extends JpaRepository<ApArticleConfig, Long>, JpaSpecificationExecutor<ApArticleConfig>, QuerydslPredicateExecutor<ApArticleConfig> {
 
 
+    ApArticleConfig findByArticleId(Long articleId);
 }

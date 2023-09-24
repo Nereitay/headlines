@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import es.kiwi.common.constants.WemediaConstants;
+import es.kiwi.common.constants.WmNewsMessageConstants;
 import es.kiwi.common.exception.CustomException;
 import es.kiwi.model.common.dtos.PageResponseResult;
 import es.kiwi.model.common.dtos.ResponseResult;
@@ -28,6 +29,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +55,9 @@ public class WmNewsServiceImpl implements WmNewsService {
     private WmNewsAutoScanService wmNewsAutoScanService;
     @Autowired
     private WmNewsTaskService wmNewsTaskService;
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+
     @Override
     public ResponseResult findList(WmNewsPageReqDto dto) {
         // 1. 检查参数
@@ -242,5 +247,49 @@ public class WmNewsServiceImpl implements WmNewsService {
             wmNewsMaterialService.deleteAllFromNewsId(wmNews.getId());
         }
         wmNewsRepository.saveAndFlush(wmNews);
+    }
+
+    /**
+     * 文章上下架
+     *
+     * @param dto
+     * @return
+     */
+    @Override
+    public ResponseResult downOrUp(WmNewsDto dto) {
+        // 1. 检查参数
+        if (dto.getId() == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        }
+
+        // 2. 查询文章
+        Optional<WmNews> wmNewsOpt = wmNewsRepository.findById(dto.getId());
+        if (!wmNewsOpt.isPresent()) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST, "文章不存在");
+        } else {
+            WmNews wmNews = wmNewsOpt.get();
+            // 3. 判断文章是否已发布
+            if (!wmNews.getStatus().equals(WmNews.Status.PUBLISHED.getCode())) {
+                return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID, "当前文章不是发布状态，不能上下架");
+            }
+            // 4. 修改文章enable
+            if (dto.getEnable() != null && dto.getEnable() > -1 && dto.getEnable() < 2) {
+                wmNews.setEnable(dto.getEnable());
+                wmNewsRepository.save(wmNews);
+
+                if (wmNews.getArticleId() != null) {
+                    // 发送消息，通知article修改文章的配置
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("articleId", wmNews.getArticleId());
+                    map.put("enable", dto.getEnable());
+                    try {
+                        kafkaTemplate.send(WmNewsMessageConstants.WM_NEWS_UP_OR_DOWN_TOPIC, new ObjectMapper().writeValueAsString(map));
+                    } catch (JsonProcessingException e) {
+                        log.error("{} - downOrUp() JsonProcessingException", this.getClass().getName());
+                    }
+                }
+            }
+            return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+        }
     }
 }
