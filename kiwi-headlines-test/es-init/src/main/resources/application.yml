@@ -1,0 +1,16 @@
+server:
+  port: 9999
+spring:
+  application:
+    name: es-article
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/headlines_article?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+    username: root
+    password: root
+
+#自定义elasticsearch连接配置
+elasticsearch:
+  host: 192.168.1.150
+  port: 9200
