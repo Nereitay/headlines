@@ -19,6 +19,7 @@
         <module>kiwi-headlines-article</module>
         <module>kiwi-headlines-wemedia</module>
         <module>kiwi-headlines-schedule</module>
+        <module>kiwi-headlines-search</module>
     </modules>
 
     <dependencies>

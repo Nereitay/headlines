@@ -1,17 +1,22 @@
 package es.kiwi.article.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.kiwi.article.repository.ApArticleContentRepository;
 import es.kiwi.article.repository.ApArticleRepository;
 import es.kiwi.article.service.ArticleFreemarkerService;
+import es.kiwi.common.constants.ArticleConstants;
 import es.kiwi.file.service.FileStorageService;
+import es.kiwi.model.article.mapstruct.mappers.ApArticleMapper;
 import es.kiwi.model.article.pojos.ApArticle;
 import es.kiwi.model.article.pojos.ApArticleContent;
+import es.kiwi.model.search.vos.SearchArticleVo;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,12 +33,13 @@ public class ArticleFreemarkerServiceImpl implements ArticleFreemarkerService {
 
     @Autowired
     private Configuration configuration;
-
     @Autowired
     private FileStorageService fileStorageService;
-
     @Autowired
     private ApArticleRepository apArticleRepository;
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+
     @Override
     @Async
     public void buildArticleToMinIO(ApArticle apArticle, String content) {
@@ -62,6 +68,26 @@ public class ArticleFreemarkerServiceImpl implements ArticleFreemarkerService {
                 article.setStaticUrl(path);
                 apArticleRepository.save(article);
             });
+
+            /*发送消息，创建索引*/
+            createArticleESIndex(apArticle, content, path);
+        }
+    }
+
+    /**
+     * 发送消息，创建索引
+     * @param apArticle
+     * @param content
+     * @param path
+     */
+    private void createArticleESIndex(ApArticle apArticle, String content, String path) {
+        SearchArticleVo vo = ApArticleMapper.INSTANCE.apArticleToSearchArticleVo(apArticle);
+        vo.setContent(content);
+        vo.setStaticUrl(path);
+        try {
+            kafkaTemplate.send(ArticleConstants.ARTICLE_ES_SYNC_TOPIC, new ObjectMapper().writeValueAsString(vo));
+        } catch (JsonProcessingException e) {
+            log.error("{} - createArticleESIndex() JsonProcessingException", this.getClass().getName());
         }
     }
 }
