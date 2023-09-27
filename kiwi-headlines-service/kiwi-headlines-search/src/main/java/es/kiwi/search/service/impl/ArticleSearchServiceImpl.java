@@ -3,7 +3,10 @@ package es.kiwi.search.service.impl;
 import es.kiwi.model.common.dtos.ResponseResult;
 import es.kiwi.model.common.enums.AppHttpCodeEnum;
 import es.kiwi.model.search.dtos.UserSearchDto;
+import es.kiwi.model.user.pojos.ApUser;
+import es.kiwi.search.service.ApUserSearchService;
 import es.kiwi.search.service.ArticleSearchService;
+import es.kiwi.utils.thread.AppThreadLocalUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.search.SearchRequest;
@@ -30,6 +33,8 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
 
     @Autowired
     private RestHighLevelClient restHighLevelClient;
+    @Autowired
+    private ApUserSearchService apUserSearchService;
 
     /**
      * es文章分页检索
@@ -43,6 +48,14 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
         if (dto == null || StringUtils.isBlank(dto.getSearchWords())) {
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
         }
+
+        /*异步调用 保存搜索记录*/
+        ApUser user = AppThreadLocalUtils.getUser();
+        if (user != null && dto.getFromIndex() == 0) { // 首页才保存，避免重复
+            apUserSearchService.insert(dto.getSearchWords(), user.getId());
+        }
+
+
         // 2. 设置查询条件
         SearchRequest searchRequest = new SearchRequest("app_info_article");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
