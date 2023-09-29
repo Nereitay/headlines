@@ -7,4 +7,5 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
 public interface WmNewsRepository extends JpaRepository<WmNews, Integer>, JpaSpecificationExecutor<WmNews>, QuerydslPredicateExecutor<WmNews> {
 
+    Integer countAllByChannelId(Integer channelId);
 }
