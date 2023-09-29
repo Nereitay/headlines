@@ -62,4 +62,14 @@ public class WmUserServiceImpl implements WmUserService {
 
         }
     }
+
+    @Override
+    public Optional<WmUser> findByName(String name) {
+        return wmUserRepository.findByName(name);
+    }
+
+    @Override
+    public void save(WmUser wmUser) {
+        wmUserRepository.save(wmUser);
+    }
 }

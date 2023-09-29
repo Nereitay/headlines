@@ -3,6 +3,7 @@ package es.kiwi.model.wemedia.pojos;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -15,6 +16,7 @@ import java.util.Date;
 @Entity
 @ApiModel("自媒体用户信息表")
 @Table(name = "wm_user")
+@Accessors(chain = true)
 public class WmUser implements Serializable {
 
     private static final long serialVersionUID = 1L;

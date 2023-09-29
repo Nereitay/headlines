@@ -20,6 +20,7 @@
         <module>kiwi-headlines-wemedia</module>
         <module>kiwi-headlines-schedule</module>
         <module>kiwi-headlines-search</module>
+        <module>kiwi-headlines-admin</module>
     </modules>
 
     <dependencies>
