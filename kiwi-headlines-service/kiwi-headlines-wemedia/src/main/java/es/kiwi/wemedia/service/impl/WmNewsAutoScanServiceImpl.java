@@ -127,7 +127,8 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
      * 保存app端相关的文章数据
      * @param wmNews
      */
-    private ResponseResult saveAppArticle(WmNews wmNews) {
+    @Override
+    public ResponseResult saveAppArticle(WmNews wmNews) {
         // 属性拷贝
         ArticleDto dto = WmNewsMapper.INSTANCE.pojoToArticleAto(wmNews);
         // 频道

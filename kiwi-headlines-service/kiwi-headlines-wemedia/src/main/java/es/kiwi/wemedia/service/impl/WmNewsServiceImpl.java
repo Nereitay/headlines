@@ -3,20 +3,26 @@ package es.kiwi.wemedia.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import es.kiwi.common.constants.WemediaConstants;
 import es.kiwi.common.constants.WmNewsMessageConstants;
 import es.kiwi.common.exception.CustomException;
 import es.kiwi.model.common.dtos.PageResponseResult;
 import es.kiwi.model.common.dtos.ResponseResult;
 import es.kiwi.model.common.enums.AppHttpCodeEnum;
+import es.kiwi.model.wemedia.dtos.NewsAuthDto;
 import es.kiwi.model.wemedia.dtos.WmNewsDto;
 import es.kiwi.model.wemedia.dtos.WmNewsPageReqDto;
 import es.kiwi.model.wemedia.mapstruct.mappers.WmNewsMapper;
-import es.kiwi.model.wemedia.pojos.WmMaterial;
-import es.kiwi.model.wemedia.pojos.WmNews;
+import es.kiwi.model.wemedia.pojos.*;
+import es.kiwi.model.wemedia.vos.WmNewsVo;
 import es.kiwi.utils.thread.WmThreadLocalUtils;
 import es.kiwi.wemedia.repository.WmMaterialRepository;
 import es.kiwi.wemedia.repository.WmNewsRepository;
+import es.kiwi.wemedia.repository.WmUserRepository;
 import es.kiwi.wemedia.service.WmNewsAutoScanService;
 import es.kiwi.wemedia.service.WmNewsMaterialService;
 import es.kiwi.wemedia.service.WmNewsService;
@@ -57,6 +63,10 @@ public class WmNewsServiceImpl implements WmNewsService {
     private WmNewsTaskService wmNewsTaskService;
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
+    @Autowired
+    private JPAQueryFactory jpaQueryFactory;
+    @Autowired
+    private WmUserRepository wmUserRepository;
 
     @Override
     public ResponseResult findList(WmNewsPageReqDto dto) {
@@ -291,5 +301,111 @@ public class WmNewsServiceImpl implements WmNewsService {
             }
             return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
         }
+    }
+
+    /**
+     * 查询文章列表
+     *
+     * @param dto
+     * @return
+     */
+    @Override
+    public ResponseResult findList(NewsAuthDto dto) {
+        //1.参数检查
+        dto.checkParam();
+        //2.分页查询+count查询
+        QWmNews wmNews = QWmNews.wmNews;
+        QWmUser wmUser = QWmUser.wmUser;
+        BooleanBuilder booleanBuilder = new BooleanBuilder();
+        booleanBuilder.and(wmNews.userId.eq(wmUser.id));
+        if (StringUtils.isNotBlank(dto.getTitle())) {
+            booleanBuilder.and(wmNews.title.contains(dto.getTitle()));
+        }
+        if (dto.getStatus() != null) {
+            booleanBuilder.and(wmNews.status.eq(dto.getStatus()));
+        }
+        JPAQuery<WmNewsVo> query = jpaQueryFactory
+                .select(Projections.fields(WmNewsVo.class,
+                        wmUser.name.as("authorName"),
+                        wmNews.id, wmNews.articleId, wmNews.channelId, wmNews.content, wmNews.enable, wmNews.createdTime,
+                        wmNews.images, wmNews.labels, wmNews.publishTime, wmNews.reason, wmNews.status, wmNews.submitedTime,
+                        wmNews.title, wmNews.type, wmNews.userId))
+                .from(wmNews, wmUser)
+                .where(booleanBuilder);
+        long count = query.stream().count();
+        List<WmNewsVo> wmNewsVos = query.limit(dto.getSize())
+                .offset((long) (dto.getPage() - 1) * dto.getSize()).fetch();
+
+        //3.结果返回
+        PageResponseResult responseResult = new PageResponseResult(dto.getPage(), dto.getSize(), (int) count);
+        responseResult.setData(wmNewsVos);
+        return responseResult;
+    }
+
+    /**
+     * 查询文章详情
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public ResponseResult findWmNewsVo(Integer id) {
+        //1.检查参数
+        if (id == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        }
+        //2.查询文章信息
+        Optional<WmNews> wmNewsOptional = wmNewsRepository.findById(id);
+        if (!wmNewsOptional.isPresent()) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST);
+        }
+        //3.查询用户信息
+        WmNews wmNews = wmNewsOptional.get();
+        Optional<WmUser> wmUserOptional = wmUserRepository.findById(wmNews.getUserId());
+
+        //4.封装vo返回
+        //属性拷贝
+        WmNewsVo wmNewsVo = WmNewsMapper.INSTANCE.pojoToVo(wmNews);
+        wmUserOptional.ifPresent(wmUser -> wmNewsVo.setAuthorName(wmUser.getName()));
+        return ResponseResult.okResult(wmNewsVo);
+    }
+
+    /**
+     * 文章审核，修改状态
+     *
+     * @param status 2  审核失败  4 审核成功
+     * @param dto
+     * @return
+     */
+    @Override
+    public ResponseResult updateStatus(Short status, NewsAuthDto dto) {
+        //1.检查参数
+        if(dto == null || dto.getId() == null){
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        }
+        //2.查询文章信息
+        Optional<WmNews> wmNewsOptional = wmNewsRepository.findById(dto.getId());
+        if (!wmNewsOptional.isPresent()) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST);
+        }
+        //3.修改文章的状态
+        WmNews wmNews = wmNewsOptional.get();
+        wmNews.setStatus(status);
+        if (StringUtils.isNotBlank(dto.getMsg())) {
+            wmNews.setReason(dto.getMsg());
+        }
+        wmNewsRepository.save(wmNews);
+        //审核成功，则需要创建app端文章数据，并修改自媒体文章
+        if (status.equals(WemediaConstants.WM_NEWS_AUTH_PASS)) {
+            //创建app端文章数据
+            ResponseResult responseResult = wmNewsAutoScanService.saveAppArticle(wmNews);
+            if (responseResult.getCode().equals(200)) {
+                wmNews.setArticleId((Long)responseResult.getData());
+                wmNews.setStatus(WmNews.Status.PUBLISHED.getCode());
+                wmNewsRepository.save(wmNews);
+            }
+        }
+        //4.返回
+        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
 }

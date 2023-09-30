@@ -1,4 +1,4 @@
-package es.kiwi.article.service.impl.impl;
+package es.kiwi.article.service.impl;
 
 import es.kiwi.article.repository.ApArticleConfigRepository;
 import es.kiwi.article.service.ApArticleConfigService;

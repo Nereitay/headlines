@@ -3,6 +3,7 @@ package es.kiwi.model.wemedia.mapstruct.mappers;
 import es.kiwi.model.article.dtos.ArticleDto;
 import es.kiwi.model.wemedia.dtos.WmNewsDto;
 import es.kiwi.model.wemedia.pojos.WmNews;
+import es.kiwi.model.wemedia.vos.WmNewsVo;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
@@ -27,4 +28,6 @@ public interface WmNewsMapper {
             @Mapping(source = "userId", target = "authorId") // 作者
     })
     ArticleDto pojoToArticleAto(WmNews wmNews);
+
+    WmNewsVo pojoToVo(WmNews wmNews);
 }
