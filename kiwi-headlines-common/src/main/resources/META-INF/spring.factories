@@ -5,4 +5,5 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   es.kiwi.common.aliyun.GreenImageScan,\
   es.kiwi.common.aliyun.GreenTextScan,\
   es.kiwi.common.tess4j.Tess4jClient,\
-  es.kiwi.common.redis.CacheService
+  es.kiwi.common.redis.CacheService,\
+  es.kiwi.common.jackson.InitJacksonConfig

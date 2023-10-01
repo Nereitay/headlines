@@ -9,13 +9,18 @@ import es.kiwi.article.repository.ApArticleRepository;
 import es.kiwi.article.service.ApArticleService;
 import es.kiwi.article.service.ArticleFreemarkerService;
 import es.kiwi.common.constants.ArticleConstants;
+import es.kiwi.common.constants.BehaviorConstants;
+import es.kiwi.common.redis.CacheService;
 import es.kiwi.model.article.dtos.ArticleDto;
 import es.kiwi.model.article.dtos.ArticleHomeDto;
+import es.kiwi.model.article.dtos.ArticleInfoDto;
 import es.kiwi.model.article.mapstruct.mappers.ApArticleMapper;
 import es.kiwi.model.article.pojos.*;
 import es.kiwi.model.common.dtos.ResponseResult;
 import es.kiwi.model.common.enums.AppHttpCodeEnum;
+import es.kiwi.model.user.pojos.ApUser;
 import es.kiwi.utils.common.UpdateUtil;
+import es.kiwi.utils.thread.AppThreadLocalUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -24,9 +29,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service("apArticleService")
 @Transactional
@@ -46,6 +49,9 @@ public class ApArticleServiceImpl implements ApArticleService {
 
     @Autowired
     private ArticleFreemarkerService articleFreemarkerService;
+
+    @Autowired
+    private CacheService cacheService;
 
     private static final short MAX_PAGE_SIZE = 50;
 
@@ -177,5 +183,57 @@ public class ApArticleServiceImpl implements ApArticleService {
 
         //3.结果返回  文章的id
         return ResponseResult.okResult(apArticle.getId());
+    }
+
+    /**
+     * 加载文章详情 数据回显
+     *
+     * @param dto
+     * @return
+     */
+    @Override
+    public ResponseResult loadArticleBehavior(ArticleInfoDto dto) {
+        //0.检查参数
+        if (dto == null || dto.getArticleId() == null || dto.getAuthorId() == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        }
+
+        //{ "isfollow": true, "islike": true,"isunlike": false,"iscollection": true }
+        boolean isfollow = false, islike = false, isunlike = false, iscollection = false;
+
+        ApUser user = AppThreadLocalUtils.getUser();
+        if(user != null){
+            //喜欢行为
+            String likeBehaviorJson = (String) cacheService.hGet(
+                    BehaviorConstants.LIKE_BEHAVIOR + dto.getArticleId().toString(), user.getId().toString());
+            if(StringUtils.isNotBlank(likeBehaviorJson)){
+                islike = true;
+            }
+            //不喜欢的行为
+            String unLikeBehaviorJson = (String) cacheService.hGet(BehaviorConstants.UN_LIKE_BEHAVIOR + dto.getArticleId().toString(), user.getId().toString());
+            if(StringUtils.isNotBlank(unLikeBehaviorJson)){
+                isunlike = true;
+            }
+            //是否收藏
+            String collctionJson = (String) cacheService.hGet(BehaviorConstants.COLLECTION_BEHAVIOR+user.getId(),dto.getArticleId().toString());
+            if(StringUtils.isNotBlank(collctionJson)){
+                iscollection = true;
+            }
+
+            //是否关注
+            Double score = cacheService.zScore(BehaviorConstants.APUSER_FOLLOW_RELATION + user.getId(), dto.getAuthorId().toString());
+            System.out.println(score);
+            if(score != null){
+                isfollow = true;
+            }
+        }
+
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("isfollow", isfollow);
+        resultMap.put("islike", islike);
+        resultMap.put("isunlike", isunlike);
+        resultMap.put("iscollection", iscollection);
+
+        return ResponseResult.okResult(resultMap);
     }
 }

@@ -21,6 +21,7 @@
         <module>kiwi-headlines-schedule</module>
         <module>kiwi-headlines-search</module>
         <module>kiwi-headlines-admin</module>
+        <module>kiwi-headlines-behavior</module>
     </modules>
 
     <dependencies>

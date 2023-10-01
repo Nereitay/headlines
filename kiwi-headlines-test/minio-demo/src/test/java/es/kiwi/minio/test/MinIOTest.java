@@ -15,7 +15,7 @@ public class MinIOTest {
     public void test() {
 
         try(FileInputStream fileInputStream =
-                    new FileInputStream("D:\\ideawork\\temp\\js\\axios.min.js")) {
+                    new FileInputStream("D:\\ideawork\\temp\\js\\index.js")) {
 
             // 1.获取minio的链接信息 创建一个minio的客户端
             MinioClient minioClient = MinioClient.builder()
@@ -24,7 +24,7 @@ public class MinIOTest {
 
             // 2.上传
             PutObjectArgs putObjectArgs = PutObjectArgs.builder()
-                    .object("plugins/js/axios.min.js") // 文件名称
+                    .object("plugins/js/index.js") // 文件名称
                     .contentType("text/js") // 文件类型
                     .bucket("headlines") // 桶名称
                     .stream(fileInputStream, fileInputStream.available(), -1)
