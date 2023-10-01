@@ -5,26 +5,28 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>es.kiwi</groupId>
-        <artifactId>kiwi-headlines</artifactId>
+        <artifactId>kiwi-headlines-test</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>kiwi-headlines-test</artifactId>
-    <packaging>pom</packaging>
-    <modules>
-        <module>freemarker-demo</module>
-        <module>minio-demo</module>
-        <module>tess4j-demo</module>
-        <module>kafka-demo</module>
-        <module>es-init</module>
-        <module>mongo-demo</module>
-        <module>xxljob-demo</module>
-    </modules>
+    <artifactId>xxljob-demo</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xuxueli</groupId>
+            <artifactId>xxl-job-core</artifactId>
+            <version>2.4.0</version>
+        </dependency>
+    </dependencies>
 
 </project>
