@@ -35,7 +35,11 @@ public class ProducerQuickStart {
         /*
         * 三个参数：topic, 消息的key, 消息的value
         * */
-        ProducerRecord<String, String> producerRecord = new ProducerRecord<>("topic-first", "key-001", "Hello Kafka!");
+//        ProducerRecord<String, String> producerRecord = new ProducerRecord<>("topic-first", "key-001", "Hello Kafka!");
+        for (int i = 0; i < 10; i++) {
+            ProducerRecord<String, String> producerRecord = new ProducerRecord<>("kiwi-topic-input", "Hello Kafka");
+            producer.send(producerRecord);
+        }
 
         // 同步发送消息
        /* try {
@@ -47,7 +51,7 @@ public class ProducerQuickStart {
 
 
         // 异步消息发送 调用send()方法，并指定一个回调函数，服务器在返回响应时调用函数, 避免同步发送产生堵塞
-        try {
+        /*try {
             producer.send(producerRecord, new Callback() {
                 @Override
                 public void onCompletion(RecordMetadata recordMetadata, Exception e) {
@@ -59,7 +63,7 @@ public class ProducerQuickStart {
             });
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        }*/
 
 
         // 4. 关闭消息通道 必须要关闭，否则消息发送不成功！

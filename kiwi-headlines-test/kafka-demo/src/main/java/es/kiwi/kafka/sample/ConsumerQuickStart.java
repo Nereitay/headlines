@@ -32,7 +32,8 @@ public class ConsumerQuickStart {
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(prop);
 
         // 3. 订阅主题
-        consumer.subscribe(Collections.singletonList("topic-first"));
+//        consumer.subscribe(Collections.singletonList("topic-first"));
+        consumer.subscribe(Collections.singletonList("kiwi-topic-output"));
 
         // 4. 拉取消息
 
