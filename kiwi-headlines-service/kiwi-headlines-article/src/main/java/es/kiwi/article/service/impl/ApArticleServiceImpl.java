@@ -1,5 +1,9 @@
 package es.kiwi.article.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -16,6 +20,7 @@ import es.kiwi.model.article.dtos.ArticleHomeDto;
 import es.kiwi.model.article.dtos.ArticleInfoDto;
 import es.kiwi.model.article.mapstruct.mappers.ApArticleMapper;
 import es.kiwi.model.article.pojos.*;
+import es.kiwi.model.article.vos.HotArticleVo;
 import es.kiwi.model.common.dtos.ResponseResult;
 import es.kiwi.model.common.enums.AppHttpCodeEnum;
 import es.kiwi.model.user.pojos.ApUser;
@@ -97,6 +102,30 @@ public class ApArticleServiceImpl implements ApArticleService {
         List<ApArticle> apArticles = loadArticleList(dto, type);
         // 3 结果返回
         return ResponseResult.okResult(apArticles);
+    }
+
+    /**
+     * 加载文章列表
+     * @param dto
+     * @param type
+     * @param firstPage true 首页 false 非首页
+     * @return
+     */
+    @Override
+    public ResponseResult load2(ArticleHomeDto dto, Short type, boolean firstPage) {
+        if (firstPage) {
+            String jsonStr = cacheService.get(ArticleConstants.HOT_ARTICLE_FIRST_PAGE + dto.getTag());
+            if (StringUtils.isNotBlank(jsonStr)) {
+                try {
+                    List<HotArticleVo> hotArticleVoList = new ObjectMapper().readValue(jsonStr, new TypeReference<List<HotArticleVo>>() {});
+                    return ResponseResult.okResult(hotArticleVoList);
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                    log.error("load2() JsonProcessingException in ApArticleServiceImpl");
+                }
+            }
+        }
+        return load(dto, type);
     }
 
     @Override
@@ -235,5 +264,19 @@ public class ApArticleServiceImpl implements ApArticleService {
         resultMap.put("iscollection", iscollection);
 
         return ResponseResult.okResult(resultMap);
+    }
+
+    @Override
+    public List<ApArticle> findArticleListByLast5Days(Date dayParam) {
+        QApArticle apArticle = QApArticle.apArticle;
+        QApArticleConfig apArticleConfig = QApArticleConfig.apArticleConfig;
+        BooleanBuilder booleanBuilder = new BooleanBuilder();
+        booleanBuilder.and(apArticleConfig.isDelete.eq(false))
+                .and(apArticleConfig.isDown.eq(false))
+                .and(apArticle.publishTime.goe(dayParam));
+
+        return jpaQueryFactory.selectFrom(apArticle).leftJoin(apArticleConfig)
+                .on(apArticle.id.eq(apArticleConfig.articleId))
+                .where(booleanBuilder).fetch();
     }
 }

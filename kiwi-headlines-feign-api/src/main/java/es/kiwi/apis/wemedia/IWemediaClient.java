@@ -21,4 +21,7 @@ public interface IWemediaClient {
 
     @GetMapping("/api/v1/channel/list")
     ResponseResult getChannels();
+
+    @GetMapping("/api/v1/channel/channels")
+    ResponseResult findAll();
 }

@@ -40,4 +40,10 @@ public class WemediaClient implements IWemediaClient {
     public ResponseResult getChannels() {
         return wmChannelService.findAll();
     }
+
+    @Override
+    @GetMapping("/channels")
+    public ResponseResult findAll() {
+        return wmChannelService.findAll();
+    }
 }
