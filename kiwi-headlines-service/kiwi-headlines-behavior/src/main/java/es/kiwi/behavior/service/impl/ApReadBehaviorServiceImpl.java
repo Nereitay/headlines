@@ -4,15 +4,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.kiwi.behavior.service.ApReadBehaviorService;
 import es.kiwi.common.constants.BehaviorConstants;
+import es.kiwi.common.constants.HotArticleConstants;
 import es.kiwi.common.redis.CacheService;
 import es.kiwi.model.behavior.dtos.ReadBehaviorDto;
 import es.kiwi.model.common.dtos.ResponseResult;
 import es.kiwi.model.common.enums.AppHttpCodeEnum;
+import es.kiwi.model.msg.UpdateArticleMsg;
 import es.kiwi.model.user.pojos.ApUser;
 import es.kiwi.utils.thread.AppThreadLocalUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,6 +24,8 @@ public class ApReadBehaviorServiceImpl implements ApReadBehaviorService {
 
     @Autowired
     private CacheService cacheService;
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
 
 
     /**
@@ -59,6 +64,12 @@ public class ApReadBehaviorServiceImpl implements ApReadBehaviorService {
             cacheService.hPut(
                     BehaviorConstants.READ_BEHAVIOR + dto.getArticleId().toString(),
                     user.getId().toString(), objectMapper.writeValueAsString(dto));
+            // 发送消息， 数据聚合
+            UpdateArticleMsg msg = new UpdateArticleMsg();
+            msg.setArticleId(dto.getArticleId());
+            msg.setType(UpdateArticleMsg.UpdateArticleType.VIEWS);
+            msg.setAdd(1);
+            kafkaTemplate.send(HotArticleConstants.HOT_ARTICLE_SCORE_TOPIC, objectMapper.writeValueAsString(msg));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             log.error("{} - JsonProcessingException : {}", this.getClass().getName(), e.getMessage());

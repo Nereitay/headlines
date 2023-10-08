@@ -30,33 +30,33 @@ public class ApCollectionServiceImpl implements ApCollectionService {
      */
     @Override
     public ResponseResult collection(CollectionBehaviorDto dto) {
-//条件判断
-        if(dto == null || dto.getEntryId() == null){
+        //条件判断
+        if (dto == null || dto.getEntryId() == null) {
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
         }
 
         //判断是否登录
         ApUser user = AppThreadLocalUtils.getUser();
-        if(user == null){
+        if (user == null) {
             return ResponseResult.errorResult(AppHttpCodeEnum.NEED_LOGIN);
         }
 
         //查询
         String collectionJson = (String) cacheService.hGet(
                 BehaviorConstants.COLLECTION_BEHAVIOR + user.getId(), dto.getEntryId().toString());
-        if(StringUtils.isNotBlank(collectionJson) && dto.getOperation() == 0){
-            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID,"已收藏");
+        if (StringUtils.isNotBlank(collectionJson) && dto.getOperation() == 0) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID, "已收藏");
         }
         //收藏
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             String dtoJson = objectMapper.writeValueAsString(dto);
-            if(dto.getOperation() == 0){
-                log.info("文章收藏，保存key:{},{},{}",dto.getEntryId(),user.getId().toString(), dtoJson);
+            if (dto.getOperation() == 0) {
+                log.info("文章收藏，保存key:{},{},{}", dto.getEntryId(), user.getId().toString(), dtoJson);
                 cacheService.hPut(BehaviorConstants.COLLECTION_BEHAVIOR + user.getId(), dto.getEntryId().toString(), dtoJson);
-            }else {
+            } else {
                 //取消收藏
-                log.info("文章收藏，删除key:{},{},{}",dto.getEntryId(),user.getId().toString(), dtoJson);
+                log.info("文章收藏，删除key:{},{},{}", dto.getEntryId(), user.getId().toString(), dtoJson);
                 cacheService.hDelete(BehaviorConstants.COLLECTION_BEHAVIOR + user.getId(), dto.getEntryId().toString());
             }
         } catch (JsonProcessingException e) {

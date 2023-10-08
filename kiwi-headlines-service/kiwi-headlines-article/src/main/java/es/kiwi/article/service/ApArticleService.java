@@ -3,6 +3,7 @@ package es.kiwi.article.service;
 import es.kiwi.model.article.dtos.ArticleDto;
 import es.kiwi.model.article.dtos.ArticleHomeDto;
 import es.kiwi.model.article.dtos.ArticleInfoDto;
+import es.kiwi.model.article.msg.ArticleVisitStreamMsg;
 import es.kiwi.model.article.pojos.ApArticle;
 import es.kiwi.model.common.dtos.ResponseResult;
 
@@ -28,4 +29,10 @@ public interface ApArticleService {
     ResponseResult loadArticleBehavior(ArticleInfoDto dto);
 
     List<ApArticle> findArticleListByLast5Days(Date dayParam);
+
+    /**
+     * 更新文章的分值 同时更新缓存中的热点文章数据
+     * @param msg
+     */
+    void updateScore(ArticleVisitStreamMsg msg);
 }
