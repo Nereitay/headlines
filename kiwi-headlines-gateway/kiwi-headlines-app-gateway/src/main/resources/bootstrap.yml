@@ -10,4 +10,6 @@ spring:
       config:
         server-addr: 192.168.1.150:8848
         file-extension: yml
-        group: HibernateSQL
+#        group: HibernateSQL
+  profiles:
+    active: prod
