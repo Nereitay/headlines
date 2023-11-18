@@ -22,6 +22,7 @@
         <module>kiwi-headlines-search</module>
         <module>kiwi-headlines-admin</module>
         <module>kiwi-headlines-behavior</module>
+        <module>kiwi-headlines-comment</module>
     </modules>
 
     <dependencies>

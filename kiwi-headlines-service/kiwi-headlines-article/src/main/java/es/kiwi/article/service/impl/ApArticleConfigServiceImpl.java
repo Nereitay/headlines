@@ -3,6 +3,7 @@ package es.kiwi.article.service.impl;
 import es.kiwi.article.repository.ApArticleConfigRepository;
 import es.kiwi.article.service.ApArticleConfigService;
 import es.kiwi.model.article.pojos.ApArticleConfig;
+import es.kiwi.model.common.dtos.ResponseResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,5 +39,11 @@ public class ApArticleConfigServiceImpl implements ApArticleConfigService {
             apArticleConfigRepository.save(apArticleConfig);
         }
 
+    }
+
+    @Override
+    public ResponseResult findByArticleId(Long articleId) {
+        ApArticleConfig apArticleConfig = apArticleConfigRepository.findByArticleId(articleId);
+        return ResponseResult.okResult(apArticleConfig);
     }
 }
